@@ -30,7 +30,7 @@ public:
 CRGB leds[NUM_LEDS];
 uint8_t ledFadeTo = 10; // reduce brightness
 
-uint8_t CARD_PIN = 9;
+uint8_t CARD_PIN = 9; // card detect
 
 ClosedCube_HDC1080 sensor;
 Sd2Card card;
@@ -56,7 +56,7 @@ void flash(int error, CRGB color = CRGB::Green)
       delay(100);
     }
   }
-  else
+  else // error = 0
   {
     // flash OK
     leds[0] = fadedColor;
@@ -70,6 +70,7 @@ void flash(int error, CRGB color = CRGB::Green)
     delay(200);
     leds[0] = CRGB::Black;
     FastLED.show();
+    delay(200);
   }
 }
 
@@ -116,6 +117,7 @@ void setupRTC()
     {
       Serial.println(F("RTC lost confidence in the DateTime! Check battery"));
       Rtc.SetDateTime(compiled);
+      flash(5, CRGB::Yellow);
     }
   }
 
@@ -143,8 +145,6 @@ void setupRTC()
     flash(2, CRGB::Purple);
   }
 
-  // never assume the Rtc was last configured by you, so
-  // just clear them to your needed state
   Rtc.Enable32kHzPin(false);
   Rtc.SetSquareWavePin(DS3231SquareWavePin_ModeNone);
 }
