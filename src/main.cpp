@@ -7,12 +7,13 @@
 #include "SD.h"
 #include <FastLED.h>
 #include <RtcDS3231.h>
+// copied from LowPower to disable stuff manually
 #define PRTIM4 4
 #define power_timer4_disable() (PRR1 |= (uint8_t)(1 << PRTIM4))
 
 #define DEBUG 0
 #if DEBUG == 0
-// disable Serial output
+// disable Serial output in normal use
 #define Serial DisabledSerial
 static class
 {
@@ -132,12 +133,12 @@ void setupRTC()
   {
     Serial.println(F("RTC is older than compile time!  (Updating DateTime)"));
     Rtc.SetDateTime(compiled);
-    flash(2, CRGB::Cyan);
+    flash(2, CRGB::Cyan); // right after reprogramming usually
   }
   else if (now > compiled)
   {
     Serial.println(F("RTC is newer than compile time. (this is expected)"));
-    flash(0, CRGB::Blue);
+    flash(0, CRGB::Blue); // usual state, flash OK
   }
   else if (now == compiled)
   {
@@ -216,7 +217,7 @@ void setupSD()
 
 uint8_t checkSD()
 {
-  return card.init(SPI_HALF_SPEED, SS);
+  return card.init(SPI_HALF_SPEED, SS); //checks if SD can be accessed
 }
 
 void writeToSD(char *str)
@@ -225,7 +226,7 @@ void writeToSD(char *str)
   {
     Serial.print(filename);
     Serial.println(F(" does not exist."));
-    flash(2, CRGB::Orange);
+    flash(5, CRGB::Orange);
     return;
   }
   dataFile = SD.open(filename, FILE_WRITE);
@@ -238,14 +239,15 @@ void writeToSD(char *str)
   }
   dataFile.println(str);
   dataFile.close();
-  flash(1, CRGB::Green);
+  flash(1, CRGB::Green); // flash 1 time green = OK
 }
 
 void setup()
 {
   if (DEBUG == 0)
   {
-    delay(10000); // VERY IMPORTANT, allow time to reprogram
+    delay(10000); // VERY IMPORTANT, allow time to reprogram through USB
+    // switch off stuff to use less power
     ADCSRA &= ~(1 << ADEN);
     power_adc_disable();
     power_usart0_disable();
@@ -294,14 +296,14 @@ void loop()
     SD.begin(SS);
     writeToSD(csvrow);
   }
-  else
+  else // card missing
   {
     SD.end();
     Serial.println(F("No SD"));
     flash(2, CRGB::Red);
   }
 
-  // ADC_ON so that it doesn't touch ADC (it was already disabled)
+  // ADC_ON so that it doesn't re-enable ADC (it was already disabled)
   // last 2 params have no effect for the atmega32u4
   if (DEBUG == 0)
   {
