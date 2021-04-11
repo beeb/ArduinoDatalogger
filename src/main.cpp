@@ -173,6 +173,7 @@ void setupSD()
   Serial.println(F("Card initialized."));
   root = SD.open("/");
   root.rewindDirectory();
+  // check which is the next available filename
   int fileCounter = 0;
   while (true)
   {
@@ -192,7 +193,11 @@ void setupSD()
     }
     entry.close();
   }
-  snprintf(filename, countof(filename), "data%02d.csv", fileCounter);
+  snprintf(filename, countof(filename), "data%02d.csv", fileCounter % 100);
+  if (fileCounter % 100 < 100)
+  {
+    SD.remove(filename); // we wrapped around to file zero, so we clear the old file
+  }
   dataFile = SD.open(filename, FILE_WRITE);
   if (!dataFile)
   {
