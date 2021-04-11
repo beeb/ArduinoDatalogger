@@ -2,7 +2,7 @@
 
 A custom data logger based on ATmega32u4 with a custom PCB.
 
-![front](front.jpg) ![back](back.jpg)
+<img src="front.jpg" width="200"> <img src="back.jpg" width="200">
 
 The device features the following main components:
 * Atmel ATmega32u4 MCU
